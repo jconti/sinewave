@@ -13,7 +13,8 @@
                  [ring.middleware.logger "0.5.0"]
                  [compojure "1.5.0"]
                  [environ "1.0.3"]
-                 [http-kit "2.1.19"]]
+                 [http-kit "2.1.19"]
+                 [cljsjs/rx "4.0.7-0"]]
 
   :plugins [[lein-cljsbuild "1.1.3"]
             [lein-environ "1.0.3"]]
