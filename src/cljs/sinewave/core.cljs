@@ -1,41 +1,29 @@
 (ns sinewave.core
-  (:refer-clojure :exclude [time repeat])
-  (:require cljsjs.rx))
+  (:refer-clojure :exclude [time])
+  (:require [cljsjs.rx]))
 
 (enable-console-print!)
-;(.log js/console "hello clojurescript 2")
 
 (def canvas (.getElementById js/document "myCanvas"))
 (def ctx    (.getContext canvas "2d"))
 
-(def interval js/Rx.Observable.interval)
-(def time (interval 10))
+(def time (js/Rx.Observable.interval 10))
 
 (def red  (.map time (fn [_] "red")))
 (def blue (.map time (fn [_] "blue")))
 
-(def rx-concat     js/Rx.Observable.concat)
-(def defer      js/Rx.Observable.defer)
-(def from-event js/Rx.Observable.fromEvent)
-(def of         js/Rx.Observable.of)
-(def repeat     js/Rx.Observable.repeat)
-
-(def mouse-click (from-event canvas "click"))
+(def mouse-click (js/Rx.Observable.fromEvent canvas "click"))
 
 (def cycle-colour
-     (rx-concat (.takeUntil red mouse-click)
-                (defer #(rx-concat (.takeUntil blue mouse-click)
-                                   cycle-colour))))
+  (let [switch-to-blue #(.concat (.takeUntil blue mouse-click) cycle-colour)]
+     (.concat (.takeUntil red mouse-click)
+              (js/Rx.Observable.defer switch-to-blue))))
 
 (defn deg-to-rad [n]
   (* (/ Math/PI 180) n))
 
 (defn sine-coord [x]
-  (let [sin (Math/sin (deg-to-rad x))
-        y   (- 100 (* sin 90))]
-      {:x x
-       :y y
-       :sin sin}))
+   {:x x :y (->> x deg-to-rad Math/sin (* 90) (- 100))})
 
 (def sine-wave
   (.map time sine-coord))
@@ -82,7 +70,7 @@
 
 (defn po [obs] (.subscribe obs #(.log js/console %)))
 
-(-> (.zip sine-wave continuous-rainbow #(vector % %2))
+(-> (.zip sine-wave cycle-colour #(vector %1 %2))
     (.take 600)
     (.subscribe (fn [[{:keys [x y]} colour]]
                   (fill-rect x y colour))))
