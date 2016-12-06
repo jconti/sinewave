@@ -70,7 +70,7 @@
 
 (defn po [obs] (.subscribe obs #(.log js/console %)))
 
-(-> (.zip sine-wave cycle-colour #(vector %1 %2))
+(-> (.zip sine-wave continuous-rainbow #(vector %1 %2))
     (.take 600)
     (.subscribe (fn [[{:keys [x y]} colour]]
                   (fill-rect x y colour))))
